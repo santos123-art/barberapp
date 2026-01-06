@@ -1,16 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { Colors } from '../../constants/Colors';
 import { LogOut, Settings, History, CreditCard, ChevronRight } from 'lucide-react-native';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
+  const router = useRouter();
 
   const menuItems = [
-    { icon: History, label: 'Histórico de Agendamentos' },
-    { icon: CreditCard, label: 'Pagamentos' },
-    { icon: Settings, label: 'Configurações' },
+    { icon: History, label: 'Histórico de Agendamentos', route: '/(tabs)/history' },
+    { icon: CreditCard, label: 'Pagamentos', route: '/(tabs)/payments' },
+    { icon: Settings, label: 'Configurações', route: '/(tabs)/settings' },
   ];
 
   return (
@@ -27,7 +29,11 @@ export default function ProfileScreen() {
 
       <View style={styles.menu}>
         {menuItems.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.menuItem}>
+          <TouchableOpacity
+            key={index}
+            style={styles.menuItem}
+            onPress={() => item.route && router.push(item.route as any)}
+          >
             <View style={styles.menuItemLeft}>
               <View style={styles.iconContainer}>
                 <item.icon size={20} color={Colors.primary} />
