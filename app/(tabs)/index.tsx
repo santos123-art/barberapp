@@ -10,7 +10,7 @@ import { supabase } from '../../lib/supabase';
 interface Service {
   id: string;
   name: string;
-  price: number;
+  price: string;
   duration: string;
   icon: string;
 }
@@ -34,7 +34,7 @@ interface Appointment {
 export default function HomeScreen() {
   const { user } = useAuth();
   const router = useRouter();
-  
+
   const [services, setServices] = useState<Service[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [nextAppointment, setNextAppointment] = useState<Appointment | null>(null);
@@ -48,7 +48,7 @@ export default function HomeScreen() {
         .from('services')
         .select('*')
         .order('price', { ascending: true });
-      
+
       if (servicesError) throw servicesError;
       setServices(servicesData || []);
 
@@ -56,7 +56,7 @@ export default function HomeScreen() {
       const { data: barbersData, error: barbersError } = await supabase
         .from('barbers')
         .select('*');
-      
+
       if (barbersError) throw barbersError;
       setBarbers(barbersData || []);
 
@@ -82,7 +82,7 @@ export default function HomeScreen() {
           // PGRST116 is "no rows returned", which is fine
           console.error('Error fetching appointment:', appointmentError);
         }
-        
+
         setNextAppointment(appointmentData);
       }
 
@@ -106,9 +106,7 @@ export default function HomeScreen() {
     fetchData();
   };
 
-  const formatPrice = (price: number) => {
-    return `R$ ${price.toFixed(2).replace('.', ',')}`;
-  };
+
 
   const renderServiceCard = ({ item }: { item: Service }) => (
     <TouchableOpacity style={styles.serviceCard} onPress={() => router.push('/(tabs)/book')}>
@@ -116,15 +114,15 @@ export default function HomeScreen() {
         <Scissors size={24} color={Colors.primary} />
       </View>
       <Text style={styles.serviceName}>{item.name}</Text>
-      <Text style={styles.servicePrice}>{formatPrice(item.price)}</Text>
+      <Text style={styles.servicePrice}>{item.price}</Text>
     </TouchableOpacity>
   );
 
   const renderBarberCard = ({ item }: { item: Barber }) => (
     <View style={styles.barberCard}>
-      <Image 
-        source={{ uri: item.image_url || 'https://via.placeholder.com/150' }} 
-        style={styles.barberImage} 
+      <Image
+        source={{ uri: item.image_url || 'https://via.placeholder.com/150' }}
+        style={styles.barberImage}
       />
       <Text style={styles.barberName}>{item.name}</Text>
       <View style={styles.ratingContainer}>
@@ -143,8 +141,8 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView 
-      style={styles.container} 
+    <ScrollView
+      style={styles.container}
       contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
@@ -166,7 +164,7 @@ export default function HomeScreen() {
           <View style={styles.appointmentHeader}>
             <Text style={styles.appointmentTitle}>Próximo Agendamento</Text>
             <View style={[
-              styles.statusBadge, 
+              styles.statusBadge,
               nextAppointment.status === 'pending' && { backgroundColor: 'rgba(255, 165, 0, 0.15)' }
             ]}>
               <Text style={[
@@ -202,10 +200,10 @@ export default function HomeScreen() {
             <Text style={styles.appointmentTitle}>Nenhum agendamento</Text>
           </View>
           <View style={styles.emptyStateContainer}>
-             <Text style={styles.emptyStateText}>Que tal agendar um corte hoje?</Text>
-             <TouchableOpacity style={styles.bookNowButton} onPress={() => router.push('/(tabs)/book')}>
-                <Text style={styles.bookNowText}>Agendar Agora</Text>
-             </TouchableOpacity>
+            <Text style={styles.emptyStateText}>Que tal agendar um corte hoje?</Text>
+            <TouchableOpacity style={styles.bookNowButton} onPress={() => router.push('/(tabs)/book')}>
+              <Text style={styles.bookNowText}>Agendar Agora</Text>
+            </TouchableOpacity>
           </View>
         </View>
       )}
