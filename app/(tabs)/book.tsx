@@ -11,13 +11,13 @@ import { useAuth } from '../../context/AuthContext';
 interface Service {
   id: string;
   name: string;
-  price: number;
+  price: string;
 }
 
 interface Barber {
   id: string;
   name: string;
-  image_url: string;
+  image: string;
 }
 
 const TIME_SLOTS = [
@@ -44,10 +44,17 @@ export default function BookScreen() {
 
   const fetchOptions = async () => {
     try {
-      const { data: servicesData } = await supabase.from('services').select('*').order('price');
+      const { data: servicesData } = await supabase.from('services').select('*');
       const { data: barbersData } = await supabase.from('barbers').select('*');
       
-      setServices(servicesData || []);
+      // Sort services by price (convert "R$ 50,00" to number for sorting)
+      const sortedServices = (servicesData || []).sort((a, b) => {
+        const priceA = parseFloat(a.price.replace('R$ ', '').replace(',', '.').trim());
+        const priceB = parseFloat(b.price.replace('R$ ', '').replace(',', '.').trim());
+        return priceA - priceB;
+      });
+
+      setServices(sortedServices);
       setBarbers(barbersData || []);
     } catch (error) {
       console.error(error);
@@ -71,16 +78,20 @@ export default function BookScreen() {
     try {
       setSubmitting(true);
 
+      // Envia os dados do agendamento para o Supabase (admin panel)
       const { error } = await supabase.from('appointments').insert({
         user_id: user.id,
         service_id: selectedService,
         barber_id: selectedBarber,
         date: selectedDate,
         time: selectedTime,
-        status: 'pending' // Default status
+        status: 'pending'
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao salvar agendamento:', error);
+        throw error;
+      }
       
       Alert.alert(
         'Sucesso!',
@@ -96,7 +107,7 @@ export default function BookScreen() {
     }
   };
 
-  const formatPrice = (price: number) => `R$ ${price.toFixed(2).replace('.', ',')}`;
+  const formatPrice = (price: string) => price;
 
   if (loadingData) {
     return (
@@ -148,7 +159,7 @@ export default function BookScreen() {
               onPress={() => setSelectedBarber(barber.id)}
             >
               <Image 
-                source={{ uri: barber.image_url || 'https://via.placeholder.com/100' }} 
+                source={{ uri: barber.image || 'https://via.placeholder.com/100' }}
                 style={[
                   styles.barberImage,
                   selectedBarber === barber.id && styles.barberImageSelected
@@ -170,7 +181,7 @@ export default function BookScreen() {
           onDayPress={(day: any) => setSelectedDate(day.dateString)}
           minDate={new Date().toISOString().split('T')[0]}
           markedDates={{
-            [selectedDate]: { selected: true, disableTouchEvent: true, selectedDotColor: 'orange' }
+            [selectedDate]: { selected: true, disableTouchEvent: true, selectedColor: 'orange' }
           }}
           theme={{
             backgroundColor: Colors.surface,
