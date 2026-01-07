@@ -18,7 +18,7 @@ interface Service {
 interface Barber {
   id: string;
   name: string;
-  image_url: string;
+  image: string;
   rating: number;
 }
 
@@ -121,7 +121,7 @@ export default function HomeScreen() {
   const renderBarberCard = ({ item }: { item: Barber }) => (
     <View style={styles.barberCard}>
       <Image
-        source={{ uri: item.image_url || 'https://via.placeholder.com/150' }}
+        source={{ uri: item.image || 'https://via.placeholder.com/150' }}
         style={styles.barberImage}
       />
       <Text style={styles.barberName}>{item.name}</Text>
